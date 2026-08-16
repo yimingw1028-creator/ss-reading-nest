@@ -93,6 +93,9 @@ function copyReaction(reaction: Reaction): Reaction {
     content: reaction.content,
     position: structuredClone(reaction.position),
     speaker: reaction.speaker,
+    ...(reaction.quoteId ? { quoteId: reaction.quoteId } : {}),
+    ...(reaction.replyToId ? { replyToId: reaction.replyToId } : {}),
+    ...(reaction.revisesId ? { revisesId: reaction.revisesId } : {}),
     ...(reaction.operationId ? { operationId: reaction.operationId } : {}),
     createdAt: reaction.createdAt
   };

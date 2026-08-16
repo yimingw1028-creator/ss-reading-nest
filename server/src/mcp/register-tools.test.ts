@@ -99,10 +99,18 @@ describe("tool descriptors", () => {
         return ui?.visibility === undefined || ui.visibility.includes("model");
       })
       .map(([name]) => name);
-    expect(modelVisibleTools).toEqual(["open_reading_nest", "read_shared_page_context"]);
+    expect(modelVisibleTools).toEqual([
+      "open_reading_nest",
+      "read_shared_page_context",
+      "save_shared_reading_reply"
+    ]);
 
     for (const [name, config] of Object.entries(TOOL_CONFIGS)) {
-      if (name === "open_reading_nest" || name === "read_shared_page_context") continue;
+      if (
+        name === "open_reading_nest" ||
+        name === "read_shared_page_context" ||
+        name === "save_shared_reading_reply"
+      ) continue;
       const meta = "_meta" in config ? (config._meta as Record<string, unknown>) : undefined;
       const ui = meta?.ui as { visibility?: readonly string[] } | undefined;
       expect(ui?.visibility, `${name} must stay hidden from the model`).toEqual(["app"]);
@@ -151,7 +159,15 @@ describe("tool descriptors", () => {
             clearThought: "这是想清楚之后留下的清思",
             createdAt: "2026-08-04T00:01:00.000Z"
           }],
-          reactions: [],
+          reactions: [{
+            id: "reply-1",
+            sessionId: session.id,
+            content: "我觉得这里更像是迟疑，不是告别。",
+            position: session.userCurrentPosition,
+            speaker: "assistant",
+            quoteId: "quote-1",
+            createdAt: "2026-08-04T00:02:00.000Z"
+          }],
           bookmarks: []
         }],
         readingRecords: []
@@ -175,9 +191,16 @@ describe("tool descriptors", () => {
         position: { index: 2 },
         currentText: "第二页正文",
         savedThoughts: [{
+          quoteId: "quote-1",
           quote: "第二页划线",
           thought: "这是我的想法",
           clearThought: "这是想清楚之后留下的清思"
+        }],
+        discussionEntries: [{
+          id: "reply-1",
+          speaker: "assistant",
+          quoteId: "quote-1",
+          content: "我觉得这里更像是迟疑，不是告别。"
         }]
       },
       responsePolicy: {
@@ -188,6 +211,55 @@ describe("tool descriptors", () => {
     });
     expect(result.content[0].text).toContain("不要复述正文");
     expect(TOOL_CONFIGS.read_shared_page_context).not.toHaveProperty("_meta.ui.resourceUri");
+  });
+
+  it("persists the model response through the dedicated no-UI tool", async () => {
+    const handlers = new Map<string, (args: any) => Promise<any>>();
+    const server = {
+      registerTool: (name: string, _config: unknown, handler: (args: any) => Promise<any>) => {
+        handlers.set(name, handler);
+      }
+    };
+    let received: Record<string, unknown> | undefined;
+    const service = {
+      saveSharedReadingReply: async (input: Record<string, unknown>) => {
+        received = input;
+        return {
+          id: "reply-1",
+          sessionId: input.sessionId,
+          content: input.content,
+          position: { kind: "paragraph", index: input.positionIndex, label: "第 2 页" },
+          speaker: "assistant",
+          operationId: input.operationId,
+          createdAt: "2026-08-04T00:02:00.000Z"
+        };
+      }
+    };
+
+    registerReadingTools(server as never, service as never);
+    const result = await handlers.get("save_shared_reading_reply")?.({
+      sessionId: "shared-session",
+      positionIndex: 2,
+      content: "我觉得这里更像是迟疑，不是告别。",
+      operationId: "save-reply-once"
+    });
+
+    expect(received).toEqual({
+      sessionId: "shared-session",
+      positionIndex: 2,
+      content: "我觉得这里更像是迟疑，不是告别。",
+      operationId: "save-reply-once"
+    });
+    expect(result.structuredContent).toMatchObject({
+      saved: true,
+      discussionEntry: {
+        id: "reply-1",
+        speaker: "assistant",
+        operationId: "save-reply-once"
+      }
+    });
+    expect(result.content[0].text).toContain("共读回应已经留在书里");
+    expect(TOOL_CONFIGS.save_shared_reading_reply).not.toHaveProperty("_meta.ui.resourceUri");
   });
 
   it("returns the component-only source endpoint for the rendered widget", async () => {
@@ -417,8 +489,8 @@ describe("tool descriptors", () => {
     });
   });
 
-  it("exposes the book-management tools and reaches twenty-six tools", () => {
-    expect(Object.keys(TOOL_CONFIGS)).toHaveLength(27);
+  it("exposes the book-management tools and reaches twenty-eight tools", () => {
+    expect(Object.keys(TOOL_CONFIGS)).toHaveLength(28);
     expect(TOOL_CONFIGS.get_novel_bookshelf.annotations.readOnlyHint).toBe(true);
     expect(TOOL_CONFIGS.rename_reading_session.annotations).toMatchObject({
       readOnlyHint: false,

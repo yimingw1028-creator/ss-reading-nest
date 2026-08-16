@@ -1270,12 +1270,14 @@ export function App() {
       )
     );
     const sourceContext = getSourceContext(sessionBundle.session.sourceManifest);
+    const replyOperationId = createClientId();
     const prompt = [
       `我刚读完《${sessionBundle.session.title}》的第 ${currentPosition.index} 页，想和你一起聊聊。`,
       savedThoughts
         ? "请先读取我刚分享的这一页和保存的想法，直接回应我的想法，再聊你最有共鸣的 1-2 个点。"
         : "请先读取我刚分享的这一页，挑最有意思的 1-3 个点自然地和我聊。",
-      "不要复述正文、逐条转抄想法，也不要概括前面的内容。"
+      "不要复述正文、逐条转抄想法，也不要概括前面的内容。",
+      `形成回应后，先调用 save_shared_reading_reply，把同一份回应保存到 sessionId=${sessionBundle.session.id}、positionIndex=${currentPosition.index}，operationId=${replyOperationId}；保存后再在聊天里自然回复。`
     ].join("\n");
     setSyncRequestInFlight(true);
     try {
@@ -1318,13 +1320,17 @@ export function App() {
 
   async function askAboutNovelSelection(selectedText: string, question: string) {
     if (!sessionBundle || syncRequestInFlight || !selectedText.trim() || !question.trim()) return;
-    await saveQuoteThought(selectedText, `提问：${question.trim()}`);
+    const savedQuote = await saveQuoteThought(selectedText, `提问：${question.trim()}`);
     const currentPosition = sessionBundle.session.userCurrentPosition;
     const sourceContext = getSourceContext(sessionBundle.session.sourceManifest);
+    const replyOperationId = createClientId();
     const prompt = [
       `【只问这一句】我在《${sessionBundle.session.title}》第 ${currentPosition.index} 页划了一句话。`,
       `我的问题：${question.trim()}`,
-      "请只围绕这句划线和这个问题回答，不要概括整页，也不要分析没有选中的内容。"
+      "请只围绕这句划线和这个问题回答，不要概括整页，也不要分析没有选中的内容。",
+      savedQuote
+        ? `形成回应后，先调用 save_shared_reading_reply，把同一份回应保存到 sessionId=${sessionBundle.session.id}、quoteId=${savedQuote.id}、operationId=${replyOperationId}；保存后再在聊天里自然回复。`
+        : `形成回应后，先调用 save_shared_reading_reply，把同一份回应保存到 sessionId=${sessionBundle.session.id}、positionIndex=${currentPosition.index}、operationId=${replyOperationId}；保存后再在聊天里自然回复。`
     ].join("\n");
     setSyncRequestInFlight(true);
     try {
@@ -1778,7 +1784,7 @@ export function App() {
   }
 
   async function saveQuoteThought(content: string, note: string) {
-    if (!sessionBundle || !content.trim() || !note.trim()) return;
+    if (!sessionBundle || !content.trim() || !note.trim()) return undefined;
     const currentPosition = sessionBundle.session.userCurrentPosition;
     const normalizedContent = content.replace(/\s+/g, " ").trim();
     const existing = sessionBundle.quotes.find(
@@ -1802,16 +1808,17 @@ export function App() {
         });
     if ("unavailable" in result) {
       setToast(NO_HOST_MESSAGE);
-      return;
+      return undefined;
     }
     const quote = result.structuredContent?.quote as Quote | undefined;
     if (!quote) {
       setToast("想法没有保存成功，请再试一次。");
-      return;
+      return undefined;
     }
     if (existing) replaceSessionQuote(sessionBundle.session.id, quote);
     else appendSessionRecord(sessionBundle.session.id, { quotes: [quote] });
     setToast(existing ? "这条想法已经修改。" : "想法已经留在这句旁边。");
+    return quote;
   }
 
   async function saveQuoteClearThought(quoteId: string, clearThought: string) {
@@ -2034,6 +2041,7 @@ export function App() {
           session={sessionBundle.session}
           chunks={chunks}
           savedQuotes={sessionBundle.quotes}
+          savedReactions={sessionBundle.reactions}
           onPosition={changePosition}
           onSharePage={shareNovelPage}
           onAskSelection={askAboutNovelSelection}

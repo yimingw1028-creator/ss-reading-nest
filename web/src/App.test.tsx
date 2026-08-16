@@ -930,7 +930,7 @@ describe("App", () => {
     });
   });
 
-  it("sends the explicit page reply to ChatGPT without asking for a tool writeback", async () => {
+  it("asks ChatGPT to preserve the explicit page reply in the book", async () => {
     const callTool = vi.fn(async (name: string, args: Record<string, any>) => {
       if (name === "start_reading_session") {
         return {
@@ -1023,7 +1023,9 @@ describe("App", () => {
     );
     const prompt = String(sendFollowUpMessage.mock.calls[0]?.[0]?.prompt ?? "");
     expect(prompt).not.toContain("publish_companion_comment");
-    expect(prompt).not.toContain("session-no-dock");
+    expect(prompt).toContain("save_shared_reading_reply");
+    expect(prompt).toContain("sessionId=session-no-dock");
+    expect(prompt).toContain("positionIndex=1");
     expect(prompt).toContain("想和你一起聊聊");
   });
 
@@ -2072,7 +2074,8 @@ describe("App", () => {
     expect(prompt).toContain("只问这一句。");
     expect(prompt).toContain("这里为什么这样说？");
     expect(prompt).not.toContain("publish_companion_comment");
-    expect(prompt).not.toContain("question-session");
+    expect(prompt).toContain("save_shared_reading_reply");
+    expect(prompt).toContain("sessionId=question-session");
     expect(prompt).not.toContain("上下文前句");
     await deviceCache.remove("question-session");
   });

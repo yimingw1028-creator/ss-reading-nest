@@ -7,6 +7,7 @@ import {
   uploadCloudSourceInputSchema,
   renameReadingSessionInputSchema,
   saveReadingRecordInputSchema,
+  saveSharedReadingReplyInputSchema,
   sendCurrentContextInputSchema,
   setReadingSessionStatusInputSchema,
   setSourceManifestInputSchema,
@@ -14,6 +15,53 @@ import {
   updateSessionPreferencesInputSchema,
   updateReadingPositionInputSchema
 } from "./tool-schemas.js";
+
+describe("shared reading reply schema", () => {
+  it("anchors a persistent assistant reply to either a quote or a page", () => {
+    expect(
+      saveSharedReadingReplyInputSchema.parse({
+        sessionId: "session-1",
+        quoteId: "quote-1",
+        content: "我想把这句留在书里。",
+        operationId: "reply-1"
+      })
+    ).toMatchObject({ quoteId: "quote-1" });
+    expect(
+      saveSharedReadingReplyInputSchema.parse({
+        sessionId: "session-1",
+        positionIndex: 8,
+        content: "这是这一页的共读回声。"
+      })
+    ).toMatchObject({ positionIndex: 8 });
+    expect(
+      saveSharedReadingReplyInputSchema.parse({
+        sessionId: "session-1",
+        revisesId: "reply-1",
+        content: "这是上一条回应的修订。"
+      })
+    ).toMatchObject({ revisesId: "reply-1" });
+  });
+
+  it("rejects an unanchored reply", () => {
+    expect(() =>
+      saveSharedReadingReplyInputSchema.parse({
+        sessionId: "session-1",
+        content: "没有位置的回应"
+      })
+    ).toThrow();
+  });
+
+  it("rejects a reply that is also marked as a revision", () => {
+    expect(() =>
+      saveSharedReadingReplyInputSchema.parse({
+        sessionId: "session-1",
+        replyToId: "reply-1",
+        revisesId: "reply-2",
+        content: "含义不明确的回应"
+      })
+    ).toThrow();
+  });
+});
 
 describe("sendCurrentContextInputSchema", () => {
 
