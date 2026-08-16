@@ -155,13 +155,13 @@ export class ReadingService {
         throw new AppError("INVALID_OPERATION", "确认位置类型与当前阅读位置不一致。");
       }
       if (input.confirmedPosition.index > session.userCurrentPosition.index) {
-        throw new AppError("INVALID_OPERATION", "不能确认星星读到了用户尚未读到的位置。");
+        throw new AppError("INVALID_OPERATION", "不能确认陆沉读到了用户尚未读到的位置。");
       }
       if (
         session.assistantSyncedPosition &&
         input.confirmedPosition.index < session.assistantSyncedPosition.index
       ) {
-        throw new AppError("INVALID_OPERATION", "星星确认位置不能倒退。");
+        throw new AppError("INVALID_OPERATION", "陆沉确认位置不能倒退。");
       }
       const now = this.deps.now().toISOString();
       session.assistantSyncedPosition = input.confirmedPosition;

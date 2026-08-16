@@ -180,7 +180,7 @@ describe("handleSourceRoute", () => {
               {
                 pageIndex: 2,
                 text: "后来补的一句",
-                comment: "这里想问星星",
+                comment: "这里想问陆沉",
                 createdAt: NOW
               }
             ],
@@ -197,7 +197,7 @@ describe("handleSourceRoute", () => {
     expect(body.session.userCurrentPosition).toMatchObject({ index: 3 });
     expect(body.sourceManifest.readingState.annotations[0]).toMatchObject({
       pageIndex: 2,
-      comment: "这里想问星星"
+      comment: "这里想问陆沉"
     });
     expect(JSON.stringify(body)).not.toContain("第一段");
   });

@@ -383,7 +383,7 @@ export function NovelReader(props: {
             ) : (
               <div className="selection-composer">
                 <label htmlFor="selection-draft">
-                  {selectionMode === "thought" ? "我的想法" : "我想问星星"}
+                  {selectionMode === "thought" ? "我的想法" : "我想问陆沉"}
                 </label>
                 <textarea
                   id="selection-draft"
@@ -413,7 +413,7 @@ export function NovelReader(props: {
                     onClick={() => void submitQuestion()}
                   >
                     <Send aria-hidden="true" strokeWidth={1.8} />
-                    {submitting ? "正在处理…" : "立即问星星"}
+                    {submitting ? "正在处理…" : "立即问陆沉"}
                   </button>
                 </div>
               </div>
@@ -545,7 +545,7 @@ export function NovelReader(props: {
                     <textarea
                       value={clearThoughtDraft}
                       onChange={(event) => setClearThoughtDraft(event.target.value)}
-                      placeholder="粘贴星星说得好的地方，或写下聊完之后真正想清楚的内容…"
+                      placeholder="粘贴陆沉说得好的地方，或写下聊完之后真正想清楚的内容…"
                     />
                   ) : (
                     <p className="quote-clear-thought-body">
@@ -695,7 +695,7 @@ export function NovelReader(props: {
         </div>
       </div>
       <ReaderActions
-        primaryLabel="和星星共读"
+        primaryLabel="和陆沉共读"
         pageLabel={`${index + 1} / ${props.chunks.length}`}
         onPrimary={() => props.onSharePage(current)}
         primaryDisabled={props.actionInFlight}

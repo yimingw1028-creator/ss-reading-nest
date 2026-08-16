@@ -161,7 +161,7 @@ describe("NovelReader", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "针对划线的问题" }), {
       target: { value: "为什么这么说？" }
     });
-    fireEvent.click(screen.getByRole("button", { name: "立即问星星" }));
+    fireEvent.click(screen.getByRole("button", { name: "立即问陆沉" }));
 
     await waitFor(() => {
       expect(props.onAskSelection).toHaveBeenCalledWith("第一句话。", "为什么这么说？");
@@ -193,9 +193,9 @@ describe("NovelReader", () => {
     expect(screen.getByText("已经想清楚的一点")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "打开这句" }));
     expect(screen.getByRole("dialog", { name: "划线清思" })).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText(/粘贴星星说得好的地方/)).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/粘贴陆沉说得好的地方/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "编辑清思" }));
-    expect(screen.getByPlaceholderText(/粘贴星星说得好的地方/)).toHaveValue("已经想清楚的一点");
+    expect(screen.getByPlaceholderText(/粘贴陆沉说得好的地方/)).toHaveValue("已经想清楚的一点");
     fireEvent.click(screen.getByRole("button", { name: "修改意绪" }));
     expect(screen.getByRole("textbox", { name: "我的划线想法" })).toHaveValue("旧想法");
   });
@@ -289,7 +289,7 @@ describe("NovelReader", () => {
     fireEvent.click(screen.getByText("第二句话。", { selector: "mark" }));
     expect(screen.getByRole("dialog", { name: "划线清思" })).toBeInTheDocument();
     expect(screen.getByText("最初的意绪")).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText(/粘贴星星说得好的地方/), {
+    fireEvent.change(screen.getByPlaceholderText(/粘贴陆沉说得好的地方/), {
       target: { value: "聊完之后，我发现这里真正说的是持续反馈。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "保存清思" }));
@@ -338,7 +338,7 @@ describe("NovelReader", () => {
     const summary = screen.getByRole("button", { name: /本页共读记录/ });
     expect(summary).toHaveAttribute("aria-label", "打开本页共读记录：1 条");
     fireEvent.click(screen.getByText("第二句话。", { selector: "mark" }));
-    fireEvent.change(screen.getByPlaceholderText(/粘贴星星说得好的地方/), {
+    fireEvent.change(screen.getByPlaceholderText(/粘贴陆沉说得好的地方/), {
       target: { value: "聊完之后，我知道这里是在说反馈。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "保存清思" }));
@@ -355,7 +355,7 @@ describe("NovelReader", () => {
     const props = makeProps();
     render(<NovelReader {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "和星星共读" }));
+    fireEvent.click(screen.getByRole("button", { name: "和陆沉共读" }));
     expect(props.onSharePage).toHaveBeenCalledWith("第一句话。第二句话。");
   });
 

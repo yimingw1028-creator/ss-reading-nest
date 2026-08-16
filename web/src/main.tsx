@@ -21,6 +21,6 @@ if (rootElement) {
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-      `<main class="boot-diagnostics" role="alert"><strong>冰冰和星星的小书房加载状态</strong><p>Missing app root. Please refresh the widget.</p><dl><div><dt>resourceVersion</dt><dd>${READING_NEST_RESOURCE_VERSION}</dd></div><div><dt>bootStage</dt><dd>missing-root</dd></div></dl></main>`
+      `<main class="boot-diagnostics" role="alert"><strong>阿雾和陆沉的共读小巢加载状态</strong><p>Missing app root. Please refresh the widget.</p><dl><div><dt>resourceVersion</dt><dd>${READING_NEST_RESOURCE_VERSION}</dd></div><div><dt>bootStage</dt><dd>missing-root</dd></div></dl></main>`
   );
 }

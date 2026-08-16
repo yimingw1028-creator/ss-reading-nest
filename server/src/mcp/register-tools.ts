@@ -118,7 +118,7 @@ const readSharedPageContextInputSchema = z
 
 export const TOOL_CONFIGS = {
   open_reading_nest: {
-    title: "打开 冰冰和星星的小书房",
+    title: "打开阿雾和陆沉的共读小巢",
     description: "Use this when the user wants to open the reading nest or continue recent reading.",
     inputSchema: openReadingNestInputSchema,
     annotations: readOnly,
@@ -131,9 +131,9 @@ export const TOOL_CONFIGS = {
     }
   },
   read_shared_page_context: {
-    title: "共读当前书页与冰冰的想法",
+    title: "共读当前书页与阿雾的想法",
     description:
-      "必须在用户要求共读当前页时调用。触发语包括：和星星共读、读这一页、刚读完第几页、看看这一页、读取我保存的想法、聊聊当前内容。即使阅读组件已经打开，也要立即调用本工具读取当前页正文和冰冰保存的想法；不要等待组件再次推送，不要声称拿不到内容。读取后直接回应冰冰的想法，不要复述或概括整页，也不要逐条转抄想法。",
+      "必须在用户要求共读当前页时调用。触发语包括：和陆沉共读、读这一页、刚读完第几页、看看这一页、读取我保存的想法、聊聊当前内容。即使阅读组件已经打开，也要立即调用本工具读取当前页正文和阿雾保存的想法；不要等待组件再次推送，不要声称拿不到内容。读取后直接回应阿雾的想法，不要复述或概括整页，也不要逐条转抄想法。",
     inputSchema: readSharedPageContextInputSchema,
     annotations: readOnly
   },
@@ -152,9 +152,9 @@ export const TOOL_CONFIGS = {
     _meta: appOnlyToolMeta
   },
   check_reading_nest_app_compatibility: {
-    title: "检查 冰冰和星星的小书房 App 兼容性",
+    title: "检查阿雾和陆沉的共读小巢 App 兼容性",
     description:
-      "Use this only to verify whether the current ChatGPT client can render a minimal 冰冰和星星的小书房 App component. It does not read or modify any book data.",
+      "Use this only to verify whether the current ChatGPT client can render the minimal 阿雾和陆沉的共读小巢 App component. It does not read or modify any book data.",
     inputSchema: z.object({}),
     annotations: readOnly,
     _meta: {
@@ -184,7 +184,7 @@ export const TOOL_CONFIGS = {
     _meta: appOnlyToolMeta
   },
   confirm_assistant_synced_position: {
-    title: "确认星星已读位置",
+    title: "确认陆沉已读位置",
     description:
       "Use this only after the user explicitly confirms that ChatGPT replied it has read through a batch end.",
     inputSchema: confirmAssistantSyncedPositionInputSchema,
@@ -394,7 +394,7 @@ export function registerReadingTools(
     return {
       ...toolResult(
         summarizeNovelBookshelfForModel(bookshelf.bookshelfSessions),
-        "已打开 冰冰和星星的小书房。完整书架只显示在阅读组件内。后续如果冰冰要求共读、讨论当前页或读取已保存的想法，必须立即调用 read_shared_page_context；不要等待阅读组件再次推送内容。"
+        "已打开阿雾和陆沉的共读小巢。完整书架只显示在阅读组件内。后续如果阿雾要求共读、讨论当前页或读取已保存的想法，必须立即调用 read_shared_page_context；不要等待阅读组件再次推送内容。"
       ),
       _meta: { privateBookshelf: bookshelf }
     };
@@ -567,7 +567,7 @@ export function registerReadingTools(
           confirmedBatchId: input.batchId,
           updatedAt: session.updatedAt
         },
-        `已由用户确认星星读到${input.confirmedPosition.label}。`
+        `已由用户确认陆沉读到${input.confirmedPosition.label}。`
       );
     }
   );

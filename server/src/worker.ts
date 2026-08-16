@@ -20,7 +20,7 @@ export default {
     if (route === "health") {
       return Response.json({
         ok: true,
-        app: "冰冰和星星的小书房",
+        app: "阿雾和陆沉的共读小巢",
         version: READING_NEST_APP_VERSION
       }, {
         headers: { "cache-control": "no-store" }
