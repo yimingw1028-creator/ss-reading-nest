@@ -31,7 +31,7 @@ const item: BookshelfItem = {
     {
       id: "clarity-1",
       sessionId: "book-1",
-      content: "星星短评：记住也是一种选择",
+      content: "陆沉短评：记住也是一种选择",
       note: "被记住的往往是当时真实的感受。",
       position: { kind: "paragraph", index: 8, label: "第 8 页" },
       createdAt: "2026-07-19T00:00:00.000Z"

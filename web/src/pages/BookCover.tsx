@@ -44,7 +44,7 @@ const ARCHIVE_COPY: Record<
   clarity: {
     label: "清思",
     measure: "记",
-    description: "你从星星回复里保存下来的片段"
+    description: "你从陆沉回复里保存下来的片段"
   },
   minutes: {
     label: "纪要",
@@ -107,7 +107,7 @@ export function BookCover(props: {
         <button type="button" className="cover-back" onClick={props.onBack} aria-label="返回书架">
           <ArrowLeft className="cover-toolbar-icon" aria-hidden="true" strokeWidth={1.8} />
         </button>
-        <span>冰冰和星星的小书房</span>
+        <span>阿雾和陆沉的共读小巢</span>
         {availableKinds.length > 0 ? (
           <button
             type="button"
@@ -135,7 +135,7 @@ export function BookCover(props: {
             }
           >
             <span className="cover-book-edge" aria-hidden="true" />
-            <span className="cover-book-kicker">冰冰和星星的小书房</span>
+            <span className="cover-book-kicker">阿雾和陆沉的共读小巢</span>
             <strong title={fullTitle}>{displayTitle}</strong>
             <span className="cover-book-rule" aria-hidden="true" />
             <small>{props.item.session.status === "completed" ? "阅毕" : "正在共读"}</small>
@@ -306,12 +306,12 @@ export function buildBookArchive(item: BookshelfItem): Record<ArchiveKind, Archi
     const note = quote.note?.trim();
     if (!note) continue;
     const normalizedContent = quote.content.trim();
-    if (/^星星(?:短评|清思)[：:]/.test(normalizedContent)) {
+    if (/^陆沉(?:短评|清思)[：:]/.test(normalizedContent)) {
       archive.clarity.push({
         id: quote.id,
         deleteTarget: { source: "quote", recordId: quote.id },
         kind: "clarity",
-        title: stripPrefix(normalizedContent, /^星星(?:短评|清思)[：:]\s*/),
+        title: stripPrefix(normalizedContent, /^陆沉(?:短评|清思)[：:]\s*/),
         body: note,
         position: quote.position
       });

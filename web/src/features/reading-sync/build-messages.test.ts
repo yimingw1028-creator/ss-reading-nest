@@ -37,7 +37,7 @@ describe("reading-sync messages", () => {
     const message = buildBatchChatMessage(job, batch);
 
     expect(message).toContain("【补课第 1/4 批：第 3–8 页】");
-    expect(message).toContain("星星先安静追到用户当前位置");
+    expect(message).toContain("陆沉先安静追到用户当前位置");
     expect(message).toContain("只简短回复：“已读到第 8 页。”");
     expect(message).toContain(batch.text);
     expect(message).not.toMatch(/剧情摘要|关键事件|人物关系/);

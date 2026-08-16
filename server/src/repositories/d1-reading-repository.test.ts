@@ -146,7 +146,7 @@ describe("D1ReadingRepository", () => {
         {
           pageIndex: 6,
           text: "复利曲线",
-          comment: "这里想问星星",
+          comment: "这里想问陆沉",
           createdAt: NOW
         }
       ],

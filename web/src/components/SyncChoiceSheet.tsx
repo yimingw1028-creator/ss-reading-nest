@@ -23,7 +23,7 @@ export function SyncChoiceSheet(props: {
           <div>
             <span className="sheet-kicker">共读同步</span>
             <h2>从哪里接上剧情？</h2>
-            <p>星星停在{props.assistantLabel}，你已经读到{props.userLabel}。</p>
+            <p>陆沉停在{props.assistantLabel}，你已经读到{props.userLabel}。</p>
           </div>
           <button type="button" className="icon-button sheet-close" aria-label="取消同步" onClick={props.onCancel}>
             <X aria-hidden="true" strokeWidth={1.8} />

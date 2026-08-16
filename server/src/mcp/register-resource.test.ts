@@ -81,10 +81,8 @@ describe("registerReadingResource", () => {
     expect(loaded.contents[0]._meta["openai/widgetCSP"].connect_domains).toContain(
       "https://reading-nest.example.workers.dev"
     );
-    expect(loaded.contents[0]._meta.ui.domain).toBe("https://reading-nest.example.workers.dev");
-    expect(loaded.contents[0]._meta["openai/widgetDomain"]).toBe(
-      "https://reading-nest.example.workers.dev"
-    );
+    expect(loaded.contents[0]._meta.ui.domain).toBeUndefined();
+    expect(loaded.contents[0]._meta).not.toHaveProperty("openai/widgetDomain");
     expect(loadBootstrap).toHaveBeenCalledTimes(1);
     expect(loaded.contents[0].text).toContain("window.__SS_READING_NEST_BOOTSTRAP__=");
     expect(loaded.contents[0].text).toContain(
@@ -104,10 +102,11 @@ describe("registerReadingResource", () => {
     expect(probeUri).toBe("ui://ss-reading-nest/app-compat-v3.html");
     expect(probeDescriptor._meta.ui.prefersBorder).toBe(true);
     const probe = await probeLoader();
-    expect(probe.contents[0].text).toContain("冰冰和星星的小书房 App 组件已显示");
+    expect(probe.contents[0].text).toContain("阿雾和陆沉的共读小巢 App 组件已显示");
     expect(probe.contents[0]._meta.ui.csp.connectDomains).toContain(
       "http://localhost:8787"
     );
-    expect(probe.contents[0]._meta["openai/widgetDomain"]).toBe("http://localhost:8787");
+    expect(probe.contents[0]._meta.ui.domain).toBeUndefined();
+    expect(probe.contents[0]._meta).not.toHaveProperty("openai/widgetDomain");
   });
 });

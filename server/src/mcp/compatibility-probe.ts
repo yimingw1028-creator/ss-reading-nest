@@ -4,7 +4,7 @@ export function createReadingNestCompatibilityProbeHtml() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>冰冰和星星的小书房 App 检查</title>
+<title>阿雾和陆沉的共读小巢 App 检查</title>
 <style>
   html,body{margin:0;background:#fffaf6;color:#2d2420;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
   main{box-sizing:border-box;min-height:180px;padding:24px;display:grid;align-content:center;gap:10px}
@@ -13,7 +13,7 @@ export function createReadingNestCompatibilityProbeHtml() {
 </head>
 <body>
 <main>
-  <strong>冰冰和星星的小书房 App 组件已显示</strong>
+  <strong>阿雾和陆沉的共读小巢 App 组件已显示</strong>
   <span class="ok">基础渲染正常</span>
   <span id="bridge" class="muted">正在检查 ChatGPT 连接…</span>
 </main>

@@ -30,20 +30,19 @@ function injectBootstrap(widgetHtml: string, bootstrap: ReadingResourceBootstrap
 }
 
 function createWidgetMetadata(workerOrigin?: string) {
-  const widgetDomain = workerOrigin ?? "http://localhost:8787";
+  const allowedOrigin = workerOrigin ?? "http://localhost:8787";
   const resourceCsp = {
-    connectDomains: [widgetDomain],
-    resourceDomains: [widgetDomain]
+    connectDomains: [allowedOrigin],
+    resourceDomains: [allowedOrigin]
   };
   const openaiWidgetCsp = {
-    connect_domains: [widgetDomain],
-    resource_domains: [widgetDomain]
+    connect_domains: [allowedOrigin],
+    resource_domains: [allowedOrigin]
   };
-  return { widgetDomain, resourceCsp, openaiWidgetCsp };
+  return { resourceCsp, openaiWidgetCsp };
 }
 
 function createResourceMeta(
-  widgetDomain: string,
   resourceCsp: { connectDomains: string[]; resourceDomains: string[] },
   openaiWidgetCsp: { connect_domains: string[]; resource_domains: string[] },
   description: string
@@ -51,11 +50,9 @@ function createResourceMeta(
   return {
     ui: {
       prefersBorder: true,
-      domain: widgetDomain,
       csp: resourceCsp
     },
     "openai/widgetCSP": openaiWidgetCsp,
-    "openai/widgetDomain": widgetDomain,
     "openai/widgetDescription": description,
     "openai/widgetPrefersBorder": true
   };
@@ -67,9 +64,8 @@ export function registerReadingResource(
   workerOrigin?: string,
   loadBootstrap?: ReadingResourceBootstrapLoader
 ) {
-  const { widgetDomain, resourceCsp, openaiWidgetCsp } = createWidgetMetadata(workerOrigin);
+  const { resourceCsp, openaiWidgetCsp } = createWidgetMetadata(workerOrigin);
   const resourceMeta = createResourceMeta(
-    widgetDomain,
     resourceCsp,
     openaiWidgetCsp,
     READING_NEST_DESCRIPTION
@@ -78,7 +74,7 @@ export function registerReadingResource(
   for (const uri of [READING_NEST_URI, ...READING_NEST_LEGACY_URIS]) {
     registerAppResource(
       server,
-      "冰冰和星星的小书房",
+      "阿雾和陆沉的共读小巢",
       uri,
       {
         description: "移动端优先的小说共读小窝",
@@ -114,12 +110,11 @@ export function registerReadingResource(
 }
 
 export function registerReadingCompatibilityProbeResource(server: McpServer, workerOrigin?: string) {
-  const { widgetDomain, resourceCsp, openaiWidgetCsp } = createWidgetMetadata(workerOrigin);
+  const { resourceCsp, openaiWidgetCsp } = createWidgetMetadata(workerOrigin);
   const resourceMeta = createResourceMeta(
-    widgetDomain,
     resourceCsp,
     openaiWidgetCsp,
-    "一个最小的 ChatGPT App 组件，用于确认原生客户端能否渲染 冰冰和星星的小书房 小窝。"
+    "一个最小的 ChatGPT App 组件，用于确认原生客户端能否渲染阿雾和陆沉的共读小巢。"
   );
 
   for (const uri of [
@@ -128,10 +123,10 @@ export function registerReadingCompatibilityProbeResource(server: McpServer, wor
   ]) {
     registerAppResource(
       server,
-      "冰冰和星星的小书房 App 兼容性检查",
+      "阿雾和陆沉的共读小巢 App 兼容性检查",
       uri,
       {
-        description: "一个最小的 ChatGPT App 组件，用于确认原生客户端能否渲染 冰冰和星星的小书房 小窝。",
+        description: "一个最小的 ChatGPT App 组件，用于确认原生客户端能否渲染阿雾和陆沉的共读小巢。",
         _meta: resourceMeta
       },
       async () => ({
