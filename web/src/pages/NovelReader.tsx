@@ -11,7 +11,7 @@ import {
   Sparkles,
   X
 } from "lucide-react";
-import type { Quote, ReadingSession } from "@ss/shared";
+import type { Quote, Reaction, ReadingSession } from "@ss/shared";
 import { useHorizontalPaging } from "../hooks/useHorizontalPaging.js";
 import { ReaderHeader } from "../components/ReaderHeader.js";
 import { ReaderActions } from "../components/ReaderActions.js";
@@ -23,10 +23,11 @@ export function NovelReader(props: {
   session: ReadingSession;
   chunks: string[];
   savedQuotes: Quote[];
+  savedReactions: Reaction[];
   onPosition: (index: number) => void;
   onSharePage: (currentText: string) => Promise<void> | void;
   onAskSelection: (selectedText: string, question: string) => Promise<void> | void;
-  onSaveThought: (content: string, note: string) => Promise<void> | void;
+  onSaveThought: (content: string, note: string) => Promise<unknown> | unknown;
   onSaveClearThought: (
     quoteId: string,
     clearThought: string
@@ -65,6 +66,15 @@ export function NovelReader(props: {
   const currentThoughts = useMemo(
     () => currentQuotes.filter((quote) => quote.note),
     [currentQuotes]
+  );
+  const currentDiscussion = useMemo(
+    () =>
+      props.savedReactions.filter(
+        (entry) =>
+          entry.position.kind === props.session.userCurrentPosition.kind &&
+          entry.position.index === index + 1
+      ),
+    [index, props.savedReactions, props.session.userCurrentPosition.kind]
   );
   const navigationEntries = useMemo(() => buildNavigationEntries(props.chunks), [props.chunks]);
   const currentClearThoughts = useMemo(
@@ -333,18 +343,20 @@ export function NovelReader(props: {
           </div>
           </section>
 
-          {currentThoughts.length > 0 ? (
+          {currentThoughts.length + currentDiscussion.length > 0 ? (
             <button
               type="button"
               className="page-thoughts-pin"
-              aria-label={`打开本页想法：${currentThoughts.length} 条${
+              aria-label={`打开本页共读记录：${currentThoughts.length + currentDiscussion.length} 条${
                 currentClearThoughts > 0 ? `，清思 ${currentClearThoughts} 条` : ""
+              }${
+                currentDiscussion.length > 0 ? `，${currentDiscussion.length} 条回声` : ""
               }`}
               aria-haspopup="dialog"
               onClick={() => setThoughtsCardOpen(true)}
             >
               <Sparkles className="page-thoughts-icon" aria-hidden="true" strokeWidth={1.8} />
-              <strong>{currentThoughts.length}</strong>
+              <strong>{currentThoughts.length + currentDiscussion.length}</strong>
             </button>
           ) : null}
 
@@ -420,10 +432,11 @@ export function NovelReader(props: {
                 <header className="thoughts-card-header">
                   <div>
                     <span>第 {index + 1} 页</span>
-                    <strong>本页想法</strong>
+                    <strong>本页共读</strong>
                     <small>
                       {currentThoughts.length} 条意绪
                       {currentClearThoughts > 0 ? ` · ${currentClearThoughts} 条清思` : ""}
+                      {currentDiscussion.length > 0 ? ` · ${currentDiscussion.length} 条回声` : ""}
                     </small>
                   </div>
                   <button
@@ -456,6 +469,18 @@ export function NovelReader(props: {
                       >
                         打开这句
                       </button>
+                    </article>
+                  ))}
+                  {currentDiscussion.map((entry, discussionIndex) => (
+                    <article key={entry.id} className="thoughts-card-entry discussion-card-entry">
+                      <p className="thoughts-card-kicker">
+                        {String(currentThoughts.length + discussionIndex + 1).padStart(2, "0")}
+                        {" · "}{entry.speaker === "assistant" ? "陆沉" : "阿雾"}
+                        {entry.revisesId ? " · 修订" : " · 回声"}
+                      </p>
+                      <div className="thoughts-card-section">
+                        <p>{entry.content}</p>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -526,6 +551,29 @@ export function NovelReader(props: {
                     <p className="quote-clear-thought-body">
                       {clearThoughtDraft.trim() || "这里还没有清思。"}
                     </p>
+                  )}
+                </section>
+                <section className="quote-detail-section quote-discussion">
+                  <div className="quote-detail-section-heading">
+                    <strong>共读回声</strong>
+                    <span>
+                      {currentDiscussion.filter((entry) => entry.quoteId === activeQuote.id).length} 条
+                    </span>
+                  </div>
+                  {currentDiscussion.filter((entry) => entry.quoteId === activeQuote.id).length > 0 ? (
+                    <div className="quote-discussion-list">
+                      {currentDiscussion
+                        .filter((entry) => entry.quoteId === activeQuote.id)
+                        .map((entry) => (
+                          <article key={entry.id} className="quote-discussion-entry">
+                            <strong>{entry.speaker === "assistant" ? "陆沉" : "阿雾"}</strong>
+                            {entry.revisesId ? <small>修订</small> : null}
+                            <p>{entry.content}</p>
+                          </article>
+                        ))}
+                    </div>
+                  ) : (
+                    <p>这句旁边还没有留下我们的回应。</p>
                   )}
                 </section>
                 <div className="quote-detail-actions">

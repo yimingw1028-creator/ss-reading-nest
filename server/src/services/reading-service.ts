@@ -342,6 +342,75 @@ export class ReadingService {
     });
   }
 
+  async saveSharedReadingReply(input: {
+    sessionId: string;
+    content: string;
+    positionIndex?: number;
+    quoteId?: string;
+    replyToId?: string;
+    revisesId?: string;
+    operationId?: string;
+  }): Promise<Reaction> {
+    return this.repository.mutate((database) => {
+      const session = this.requireSession(database.sessions, input.sessionId);
+      const existing = input.operationId
+        ? database.reactions.find((item) => item.operationId === input.operationId)
+        : undefined;
+      if (existing) return existing;
+
+      const quote = input.quoteId
+        ? database.quotes.find(
+            (item) => item.id === input.quoteId && item.sessionId === input.sessionId
+          )
+        : undefined;
+      if (input.quoteId && !quote) {
+        throw new AppError("INVALID_OPERATION", "没有找到这条共读划线。");
+      }
+
+      const referencedEntryId = input.revisesId ?? input.replyToId;
+      const referencedEntry = referencedEntryId
+        ? database.reactions.find(
+            (item) => item.id === referencedEntryId && item.sessionId === input.sessionId
+          )
+        : undefined;
+      if (referencedEntryId && !referencedEntry) {
+        throw new AppError("INVALID_OPERATION", "没有找到要回应或修订的共读记录。");
+      }
+      if (input.revisesId && referencedEntry?.speaker !== "assistant") {
+        throw new AppError("INVALID_OPERATION", "只能修订陆沉自己留下的共读回应。");
+      }
+      if (
+        quote &&
+        referencedEntry?.quoteId &&
+        referencedEntry.quoteId !== quote.id
+      ) {
+        throw new AppError("INVALID_OPERATION", "共读回应与划线位置不一致。");
+      }
+
+      const position = quote?.position ?? referencedEntry?.position ?? {
+        ...session.userCurrentPosition,
+        index: input.positionIndex ?? session.userCurrentPosition.index,
+        label: `第 ${input.positionIndex ?? session.userCurrentPosition.index} 段`
+      };
+      const reaction: Reaction = {
+        id: this.deps.id(),
+        sessionId: input.sessionId,
+        content: input.content.trim(),
+        position: structuredClone(position),
+        speaker: "assistant",
+        ...(quote?.id || referencedEntry?.quoteId
+          ? { quoteId: quote?.id ?? referencedEntry?.quoteId }
+          : {}),
+        ...(input.replyToId ? { replyToId: input.replyToId } : {}),
+        ...(input.revisesId ? { revisesId: input.revisesId } : {}),
+        ...(input.operationId ? { operationId: input.operationId } : {}),
+        createdAt: this.deps.now().toISOString()
+      };
+      database.reactions.push(reaction);
+      return reaction;
+    });
+  }
+
   async saveBookmark(input: {
     sessionId: string;
     position: ReadingPosition;

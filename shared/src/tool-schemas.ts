@@ -266,6 +266,28 @@ export const saveReactionInputSchema = z.object({
   speaker: z.literal("user"),
   operationId: z.string().min(1).max(200).optional()
 });
+export const saveSharedReadingReplyInputSchema = z
+  .object({
+    sessionId: sessionIdSchema,
+    content: z.string().trim().min(1).max(12_000),
+    positionIndex: z.number().int().min(1).optional(),
+    quoteId: z.string().min(1).optional(),
+    replyToId: z.string().min(1).optional(),
+    revisesId: z.string().min(1).optional(),
+    operationId: z.string().min(1).max(200).optional()
+  })
+  .strict()
+  .refine(
+    (input) =>
+      input.positionIndex !== undefined ||
+      input.quoteId !== undefined ||
+      input.replyToId !== undefined ||
+      input.revisesId !== undefined,
+    { message: "positionIndex, quoteId, replyToId, or revisesId is required" }
+  )
+  .refine((input) => !(input.replyToId && input.revisesId), {
+    message: "replyToId and revisesId cannot be used together"
+  });
 export const saveBookmarkInputSchema = z.object({
   sessionId: sessionIdSchema,
   position: readingPositionSchema,

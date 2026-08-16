@@ -15,6 +15,7 @@ import {
   saveBookmarkInputSchema,
   saveQuoteInputSchema,
   saveReadingRecordInputSchema,
+  saveSharedReadingReplyInputSchema,
   updateQuoteNoteInputSchema,
   saveReactionInputSchema,
   sendCurrentContextInputSchema,
@@ -135,6 +136,13 @@ export const TOOL_CONFIGS = {
       "必须在用户要求共读当前页时调用。触发语包括：和星星共读、读这一页、刚读完第几页、看看这一页、读取我保存的想法、聊聊当前内容。即使阅读组件已经打开，也要立即调用本工具读取当前页正文和冰冰保存的想法；不要等待组件再次推送，不要声称拿不到内容。读取后直接回应冰冰的想法，不要复述或概括整页，也不要逐条转抄想法。",
     inputSchema: readSharedPageContextInputSchema,
     annotations: readOnly
+  },
+  save_shared_reading_reply: {
+    title: "把陆沉的共读回应留在书里",
+    description:
+      "Use this when the reading app asks you to preserve your response beside a shared page or saved quote. Save the substantive response before replying in chat. Use revisesId to add a visible revision without overwriting the earlier entry.",
+    inputSchema: saveSharedReadingReplyInputSchema,
+    annotations: { ...mutation, idempotentHint: true }
   },
   get_novel_bookshelf: {
     title: "读取小说书架",
@@ -347,6 +355,7 @@ function createLightweightToolConfigs() {
       name,
       name === "open_reading_nest" ||
       name === "read_shared_page_context" ||
+      name === "save_shared_reading_reply" ||
       name === "check_reading_nest_app_compatibility"
         ? config
         : {
@@ -424,11 +433,27 @@ export function registerReadingTools(
             Boolean(quote.note?.trim() || quote.clearThought?.trim())
         )
         .map((quote) => ({
+          quoteId: quote.id,
           quote: quote.content,
           ...(quote.note?.trim() ? { thought: quote.note.trim() } : {}),
           ...(quote.clearThought?.trim()
             ? { clearThought: quote.clearThought.trim() }
             : {})
+        }));
+      const discussionEntries = bundle.reactions
+        .filter(
+          (entry) =>
+            entry.position.kind === bundle.session.userCurrentPosition.kind &&
+            entry.position.index === index
+        )
+        .map((entry) => ({
+          id: entry.id,
+          speaker: entry.speaker,
+          content: entry.content,
+          ...(entry.quoteId ? { quoteId: entry.quoteId } : {}),
+          ...(entry.replyToId ? { replyToId: entry.replyToId } : {}),
+          ...(entry.revisesId ? { revisesId: entry.revisesId } : {}),
+          createdAt: entry.createdAt
         }));
 
       let currentText: string | undefined;
@@ -448,7 +473,7 @@ export function registerReadingTools(
 
       return toolResult(
         {
-          available: Boolean(currentText || savedThoughts.length),
+          available: Boolean(currentText || savedThoughts.length || discussionEntries.length),
           sharedPage: {
             sessionId: bundle.session.id,
             title: bundle.session.title,
@@ -457,7 +482,8 @@ export function registerReadingTools(
               index
             },
             ...(currentText ? { currentText } : {}),
-            savedThoughts
+            savedThoughts,
+            discussionEntries
           },
           responsePolicy: {
             prioritizeUserThoughts: true,
@@ -469,6 +495,18 @@ export function registerReadingTools(
         savedThoughts.length
           ? `已读取《${bundle.session.title}》当前页和 ${savedThoughts.length} 条想法。请直接回应用户的想法，不要复述正文或逐条转抄。`
           : `已读取《${bundle.session.title}》当前页。请直接聊天，不要复述或概括整页。`
+      );
+    }
+  );
+
+  server.registerTool(
+    "save_shared_reading_reply",
+    toolConfigs.save_shared_reading_reply,
+    async (input) => {
+      const reaction = await service.saveSharedReadingReply(input);
+      return toolResult(
+        { saved: true, discussionEntry: reaction },
+        input.revisesId ? "修订已经并排留在书里。" : "共读回应已经留在书里。"
       );
     }
   );

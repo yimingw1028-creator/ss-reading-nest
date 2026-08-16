@@ -134,7 +134,10 @@ export interface Reaction {
   sessionId: string;
   content: string;
   position: ReadingPosition;
-  speaker: "user";
+  speaker: "user" | "assistant";
+  quoteId?: string;
+  replyToId?: string;
+  revisesId?: string;
   operationId?: string;
   createdAt: string;
 }

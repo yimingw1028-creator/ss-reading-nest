@@ -198,6 +198,75 @@ describe("ReadingService", () => {
     expect(bundle.bookmarks).toEqual([]);
   });
 
+  it("keeps assistant replies and later revisions as separate book records", async () => {
+    let id = 0;
+    const discussionService = new ReadingService(repository, {
+      now: () => new Date("2026-06-22T10:00:00.000Z"),
+      id: () => `discussion-${++id}`
+    });
+    const session = await discussionService.startSession("雨夜里的信", "novel");
+    const quote = await discussionService.saveQuote({
+      sessionId: session.id,
+      content: "她把信折好。",
+      note: "我觉得她已经决定告别。",
+      position: { kind: "paragraph", index: 2, label: "第 2 段" }
+    });
+    const first = await discussionService.saveSharedReadingReply({
+      sessionId: session.id,
+      quoteId: quote.id,
+      content: "我更倾向于把折信理解成暂时收起。",
+      operationId: "reply-once"
+    });
+    const duplicate = await discussionService.saveSharedReadingReply({
+      sessionId: session.id,
+      quoteId: quote.id,
+      content: "这一条不应重复写入。",
+      operationId: "reply-once"
+    });
+    const revision = await discussionService.saveSharedReadingReply({
+      sessionId: session.id,
+      revisesId: first.id,
+      content: "读到后文后，我改成认为这是一次有意的告别。"
+    });
+
+    const bundle = await discussionService.getSessionBundle(session.id);
+    expect(duplicate.id).toBe(first.id);
+    expect(bundle.reactions).toHaveLength(2);
+    expect(bundle.reactions[0]).toMatchObject({
+      speaker: "assistant",
+      quoteId: quote.id,
+      content: "我更倾向于把折信理解成暂时收起。"
+    });
+    expect(revision).toMatchObject({
+      speaker: "assistant",
+      quoteId: quote.id,
+      revisesId: first.id
+    });
+  });
+
+  it("does not let an assistant revision claim a user-authored reaction", async () => {
+    let id = 0;
+    const discussionService = new ReadingService(repository, {
+      now: () => new Date("2026-06-22T10:00:00.000Z"),
+      id: () => `ownership-${++id}`
+    });
+    const session = await discussionService.startSession("雨夜里的信", "novel");
+    const userReaction = await discussionService.saveReaction({
+      sessionId: session.id,
+      content: "我觉得这一页是在告别。",
+      position: { kind: "paragraph", index: 2, label: "第 2 页" },
+      speaker: "user"
+    });
+
+    await expect(
+      discussionService.saveSharedReadingReply({
+        sessionId: session.id,
+        revisesId: userReaction.id,
+        content: "把这条改成另一种判断。"
+      })
+    ).rejects.toMatchObject({ code: "INVALID_OPERATION" });
+  });
+
   it("keeps user and assistant positions separate", async () => {
     const session = await service.startSession("雨夜里的信", "novel");
 

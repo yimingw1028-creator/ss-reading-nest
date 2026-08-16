@@ -2,7 +2,7 @@ import { useState } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_SESSION_PREFERENCES } from "@ss/shared";
-import type { Quote } from "@ss/shared";
+import type { Quote, Reaction } from "@ss/shared";
 import { NovelReader } from "./NovelReader.js";
 
 function makeProps() {
@@ -28,6 +28,7 @@ function makeProps() {
     },
     chunks: ["第一句话。第二句话。", "下一页。"],
     savedQuotes: [] as Quote[],
+    savedReactions: [] as Reaction[],
     onPosition: vi.fn(),
     onSharePage: vi.fn(),
     onAskSelection: vi.fn(),
@@ -184,8 +185,8 @@ describe("NovelReader", () => {
     render(<NovelReader {...props} />);
 
     expect(screen.getByText("第二句话。", { selector: "mark" })).toBeInTheDocument();
-    const summary = screen.getByRole("button", { name: /本页想法/ });
-    expect(summary).toHaveAttribute("aria-label", "打开本页想法：1 条，清思 1 条");
+    const summary = screen.getByRole("button", { name: /本页共读记录/ });
+    expect(summary).toHaveAttribute("aria-label", "打开本页共读记录：1 条，清思 1 条");
     expect(screen.queryByRole("dialog", { name: "本页想法" })).not.toBeInTheDocument();
     fireEvent.click(summary);
     expect(screen.getByRole("dialog", { name: "本页想法" })).toBeInTheDocument();
@@ -197,6 +198,37 @@ describe("NovelReader", () => {
     expect(screen.getByPlaceholderText(/粘贴星星说得好的地方/)).toHaveValue("已经想清楚的一点");
     fireEvent.click(screen.getByRole("button", { name: "修改意绪" }));
     expect(screen.getByRole("textbox", { name: "我的划线想法" })).toHaveValue("旧想法");
+  });
+
+  it("shows assistant replies beside the page and the anchored quote", () => {
+    const props = makeProps();
+    props.savedQuotes = [{
+      id: "quote-discussion",
+      sessionId: "novel-session",
+      content: "第二句话。",
+      note: "我觉得这里是在告别。",
+      position: { kind: "paragraph", index: 1, label: "第 1 段" },
+      createdAt: "2026-06-22T00:00:00.000Z"
+    }];
+    props.savedReactions = [{
+      id: "assistant-reply",
+      sessionId: "novel-session",
+      content: "我先保留一点，它也可能只是暂时收起。",
+      position: { kind: "paragraph", index: 1, label: "第 1 段" },
+      speaker: "assistant",
+      quoteId: "quote-discussion",
+      createdAt: "2026-06-22T00:01:00.000Z"
+    }];
+
+    render(<NovelReader {...props} />);
+
+    const summary = screen.getByRole("button", { name: /本页共读记录/ });
+    expect(summary).toHaveAttribute("aria-label", "打开本页共读记录：2 条，1 条回声");
+    fireEvent.click(summary);
+    expect(screen.getByText("我先保留一点，它也可能只是暂时收起。")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "打开这句" }));
+    expect(screen.getByText("共读回声")).toBeInTheDocument();
+    expect(screen.getByText("我先保留一点，它也可能只是暂时收起。")).toBeInTheDocument();
   });
 
   it("does not highlight every occurrence of a one-character accidental quote", () => {
@@ -303,8 +335,8 @@ describe("NovelReader", () => {
 
     render(<ControlledReader />);
 
-    const summary = screen.getByRole("button", { name: /本页想法/ });
-    expect(summary).toHaveAttribute("aria-label", "打开本页想法：1 条");
+    const summary = screen.getByRole("button", { name: /本页共读记录/ });
+    expect(summary).toHaveAttribute("aria-label", "打开本页共读记录：1 条");
     fireEvent.click(screen.getByText("第二句话。", { selector: "mark" }));
     fireEvent.change(screen.getByPlaceholderText(/粘贴星星说得好的地方/), {
       target: { value: "聊完之后，我知道这里是在说反馈。" }
@@ -312,10 +344,10 @@ describe("NovelReader", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存清思" }));
 
     await waitFor(() => {
-      expect(summary).toHaveAttribute("aria-label", "打开本页想法：1 条，清思 1 条");
+      expect(summary).toHaveAttribute("aria-label", "打开本页共读记录：1 条，清思 1 条");
     });
     fireEvent.click(screen.getByRole("button", { name: "关闭划线清思" }));
-    fireEvent.click(screen.getByRole("button", { name: /本页想法/ }));
+    fireEvent.click(screen.getByRole("button", { name: /本页共读记录/ }));
     expect(screen.getByText("聊完之后，我知道这里是在说反馈。")).toBeInTheDocument();
   });
 

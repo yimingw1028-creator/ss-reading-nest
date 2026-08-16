@@ -1643,6 +1643,31 @@ html[data-display-mode="fullscreen"] .app {
 }
 .thoughts-card-section p { margin: 0; line-height: 1.7; white-space: pre-wrap; }
 .thoughts-card-open { justify-self: start; border-radius: 999px; color: var(--blue-strong); }
+.discussion-card-entry {
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+}
+.quote-discussion-list { display: grid; gap: 8px; }
+.quote-discussion-entry {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--blue-soft) 38%, var(--surface));
+}
+.quote-discussion-entry strong { color: var(--blue-strong); font-size: 11px; }
+.quote-discussion-entry small { color: var(--muted); font-size: 10px; }
+.quote-discussion-entry p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
 
 .toc-drawer-backdrop {
   z-index: 22;
